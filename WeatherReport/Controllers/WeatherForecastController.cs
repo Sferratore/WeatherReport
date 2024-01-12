@@ -4,7 +4,7 @@ using WeatherReport.Models;
 namespace WeatherReport.Controllers
 {
     [ApiController]
-    [Route("WeatherApi")]
+    [Route("WeatherApi")] //Sets default routing to this controller as .../WeatherApi
     public class WeatherForecastController : ControllerBase
     {
 
@@ -12,13 +12,17 @@ namespace WeatherReport.Controllers
 
         public WeatherForecastController(ILogger<WeatherForecastController> logger)
         {
-            _logger = logger;
+            _logger = logger;  //DInjected. Used to log status of application.
         }
 
-        [HttpGet(Name = "GetWeather")]
+
+        /* Returns the Weather of a place in a determined time.
+         * GET call as .../WeatherAPI/GetWeather
+         */
+        [HttpGet("GetWeather")]
         public string GetWeather()
         {
-            return "AAAAAAAA";
+            return "AAA";
         }
     }
 }
