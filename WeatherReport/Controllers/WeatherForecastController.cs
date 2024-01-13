@@ -30,7 +30,7 @@ namespace WeatherReport.Controllers
          * hour: Defines an hour. (0-23)
          */
         [HttpGet("GetWeather")]
-        public async Task<IActionResult> GetWeather(string placeName, DateTime date, int hour)  //Return type is Task<IActionResult> and not IActionResult because the operation is async! Task handles mechanism of async such as concurrency.
+        public async Task<IActionResult> GetWeather(string placeName, string date, int hour)  //Return type is Task<IActionResult> and not IActionResult because the operation is async! Task handles mechanism of async such as concurrency.
         {
             //Writing request
             string apiUrl = $"{_apiSettings.HistoryUrl}?key={_apiSettings.WeatherAPIKey}&q={placeName}&dt={date}&hour={hour}";
@@ -39,8 +39,22 @@ namespace WeatherReport.Controllers
             HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
 
             //Creating response for current API
+            string jsonString = await response.Content.ReadAsStringAsync();
+            return Ok(createWeatherForecastObjectFromJson(jsonString)); //Converting Json in Object form and giving it back 
+        }
+
+
+
+
+        //----------PRIVATE UTILITY METHODS-------------
+
+        /*
+         * Takes jsonString as input. Gives back WeatherForecast object.
+         */
+        private WeatherForecast createWeatherForecastObjectFromJson(string jsonString)
+        {
             WeatherForecast wf = new WeatherForecast();
-            var jsonString = await response.Content.ReadAsStringAsync();
+
             using (var jsonDoc = JsonDocument.Parse(jsonString))
             {
                 // Assume the JSON structure is like { "id": 123, "name": "John Doe", ... }
@@ -51,11 +65,11 @@ namespace WeatherReport.Controllers
                 wf.City = root.GetProperty("location").GetProperty("name").GetString();
                 wf.TemperatureC = root.GetProperty("forecast").GetProperty("forecastday")[0].GetProperty("hour")[0].GetProperty("temp_c").GetDouble();
                 wf.Date = root.GetProperty("forecast").GetProperty("forecastday")[0].GetProperty("hour")[0].GetProperty("time").GetString();
+                wf.Weather = root.GetProperty("forecast").GetProperty("forecastday")[0].GetProperty("hour")[0].GetProperty("condition").GetProperty("text").GetString();
 
             }
 
-            
-            return Ok(wf);
+            return wf;
         }
     }
 }
