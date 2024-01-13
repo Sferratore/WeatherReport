@@ -40,7 +40,15 @@ namespace WeatherReport.Controllers
 
             //Creating response for current API
             string jsonString = await response.Content.ReadAsStringAsync();
-            return Ok(createWeatherForecastObjectFromJson(jsonString)); //Converting Json in Object form and giving it back 
+
+            //Giving back error in case something goes wrong
+            if (!response.IsSuccessStatusCode)
+            {
+                return BadRequest(jsonString);
+            }
+
+            //Converting Json in Object form and giving it back if operation was successful.
+            return Ok(createWeatherForecastObjectFromJson(jsonString)); 
         }
 
 
