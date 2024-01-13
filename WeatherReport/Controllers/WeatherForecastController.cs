@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
+using System.Text.Json;
 using WeatherReport.Models;
 
 namespace WeatherReport.Controllers
@@ -31,9 +32,30 @@ namespace WeatherReport.Controllers
         [HttpGet("GetWeather")]
         public async Task<IActionResult> GetWeather(string placeName, DateTime date, int hour)  //Return type is Task<IActionResult> and not IActionResult because the operation is async! Task handles mechanism of async such as concurrency.
         {
+            //Writing request
             string apiUrl = $"{_apiSettings.HistoryUrl}?key={_apiSettings.WeatherAPIKey}&q={placeName}&dt={date}&hour={hour}";
+
+            //Awaiting response from WeatherAPI
             HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
-            return Ok(response);
+
+            //Creating response for current API
+            WeatherForecast wf = new WeatherForecast();
+            var jsonString = await response.Content.ReadAsStringAsync();
+            using (var jsonDoc = JsonDocument.Parse(jsonString))
+            {
+                // Assume the JSON structure is like { "id": 123, "name": "John Doe", ... }
+                JsonElement root = jsonDoc.RootElement;
+
+                // Access specific fields
+                wf.Country = root.GetProperty("location").GetProperty("country").GetString();
+                wf.City = root.GetProperty("location").GetProperty("name").GetString();
+                wf.TemperatureC = root.GetProperty("forecast").GetProperty("forecastday")[0].GetProperty("hour")[0].GetProperty("temp_c").GetDouble();
+                wf.Date = root.GetProperty("forecast").GetProperty("forecastday")[0].GetProperty("hour")[0].GetProperty("time").GetString();
+
+            }
+
+            
+            return Ok(wf);
         }
     }
 }
