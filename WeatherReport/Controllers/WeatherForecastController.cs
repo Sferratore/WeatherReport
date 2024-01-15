@@ -80,8 +80,15 @@ namespace WeatherReport.Controllers
                 //Collecting data into jsonResponse
                 jsonResponse = await response.Content.ReadAsStringAsync();
 
-                //Creating new WeatherForecast obj based on data
-                weatherForecasts[i] = createWeatherForecastObjectFromJsonInternal(jsonResponse);
+                if (response.IsSuccessStatusCode)
+                {
+                    //Creating new WeatherForecast obj based on data
+                    weatherForecasts[i] = createWeatherForecastObjectFromJsonInternal(jsonResponse);
+                }
+                else
+                {
+                    return BadRequest(jsonResponse);
+                }       
 
             }
 
