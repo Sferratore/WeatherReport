@@ -109,7 +109,7 @@ namespace WeatherReport.Controllers
             string jsonResponse;
             AvgWeather[] avgWeatherForecasts = new AvgWeather[12]; //This contains the averages of the months
 
-            for (int i = 0; i < 12; i++)
+            for (int i = 1; i < 13; i++)
             {
 
                 //Writing request
@@ -138,6 +138,12 @@ namespace WeatherReport.Controllers
 
 
         }
+
+
+
+
+
+
 
 
 
@@ -197,7 +203,7 @@ namespace WeatherReport.Controllers
 
 
         /*
-         * Creates AvgWeather object from a WeatherForecast array.
+         * Creates AvgWeather object from a WeatherForecast array. The WeatherForecast array needs to have elements ordered in terms of date.
          */
         private AvgWeather createAvgWeather(WeatherForecast[] array)
         {
@@ -242,6 +248,52 @@ namespace WeatherReport.Controllers
             return avgWf;
         }
 
+
+        /*
+         * Creates AvgWeather object from a AvgWeather array. AvgWeather array needs to be ordered by date to give coherent result.
+         */
+        private AvgWeather createAvgWeather(AvgWeather[] array)
+        {
+            AvgWeather avgWf = new AvgWeather();
+
+            avgWf.City = array[0].City;
+            avgWf.Country = array[0].Country;
+            avgWf.FromDate = array[0].FromDate;
+            avgWf.ToDate = array[array.Length - 1].ToDate;
+
+            //Calculating average temperature
+            avgWf.AvgTemperatureC = 0;
+            for (int i = 0; i < array.Length; i++)
+            {
+                avgWf.AvgTemperatureC += array[i].AvgTemperatureC;
+            }
+            avgWf.AvgTemperatureC /= array.Length;
+
+            //Calculating most common weather condition
+            var weatherConditionCounter = new Dictionary<string, int>();
+            foreach (AvgWeather avgW in array)
+            {
+                if (weatherConditionCounter.ContainsKey(avgW.AvgCondition)) //If the key, which is wthFc's Weather condition, is already present in the dictionary, we increment
+                {
+                    weatherConditionCounter[avgW.AvgCondition]++;
+                }
+                else  //Else, we create it and assign 1
+                {
+                    weatherConditionCounter[avgW.AvgCondition] = 1;
+                }
+            }
+            // Using the Aggregate method to find the most frequent weather condition.
+            // The Aggregate method iterates through each key-value pair in the weatherConditionCounter dictionary.
+            // In each iteration, it compares the current pair (x) with the next pair (y).
+            // The lambda expression (x, y) => x.Value > y.Value ? x : y decides which pair to carry forward to the next comparison.
+            // If x's value (the count of occurrences) is greater than y's, x is carried forward; otherwise, y is.
+            // This process repeats until the pair with the highest count is found.
+            // Finally, .Key is used to extract the key (the weather condition string) from that pair.
+            avgWf.AvgCondition = weatherConditionCounter.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+
+            //Give result
+            return avgWf;
+        }
 
         private AvgWeather createAvgWeatherFromJson(string jsonString)
         {
