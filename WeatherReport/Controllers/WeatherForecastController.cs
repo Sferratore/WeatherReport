@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic;
 using System.Net.Http;
 using System.Text.Json;
 using WeatherReport.Models;
@@ -52,6 +53,44 @@ namespace WeatherReport.Controllers
         }
 
 
+        /* Returns the medium weather of a place in a determined month.
+         * GET call as .../WeatherAPI/GetMediumMonthWeather.
+         * placeName: Defines a place. Could be the actual name of the place or latitude and longitude (e.g: 48.8567,2.3508).
+         * date: Defines a date. (yyyy-mm)
+         */
+        [HttpGet("GetMediumMonthWeather")]
+        public async Task<IActionResult> GetMediumMonthWeather(string placeName, string date)
+        {
+            int year = int.Parse(date.Substring(0, 4));
+            int month = int.Parse(date.Substring(5, 2));
+            int days = DateTime.DaysInMonth(year, month);
+
+            string apiUrl;
+            string jsonResponse;
+            WeatherForecast[] weatherForecasts = new WeatherForecast[days];
+            for(int i = 0; i < days; i++)
+            {
+
+                //Writing request
+                apiUrl = $"http://localhost:5008/WeatherApi/GetWeather?placeName={placeName}&date={addDayToDate(date, i+1)}&hour={12}";
+
+                //Awaiting response from WeatherAPI
+                HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
+
+                //Collecting data into jsonResponse
+                jsonResponse = await response.Content.ReadAsStringAsync();
+
+                //Creating new WeatherForecast obj based on data
+                weatherForecasts[i] = createWeatherForecastObjectFromJson(jsonResponse);
+
+            }
+
+            return Ok(weatherForecasts.Length);
+
+
+        }
+
+
 
 
         //----------PRIVATE UTILITY METHODS-------------
@@ -78,6 +117,18 @@ namespace WeatherReport.Controllers
             }
 
             return wf;
+        }
+
+        /*
+         * Takes a date in yyyy-mm format and a day as input. Returns yyyy-mm-dd string.
+         */
+        private string addDayToDate(string date, int day)
+        {
+            if(day < 10)
+            {
+                return date + "-0" + day;
+            }
+            return date + "-" + day;
         }
     }
 }
