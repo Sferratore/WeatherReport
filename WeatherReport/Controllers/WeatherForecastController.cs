@@ -128,6 +128,50 @@ namespace WeatherReport.Controllers
         }
 
 
+        private AvgWeather createAvgWeather(WeatherForecast[] array)
+        {
+            AvgWeather avgWf = new AvgWeather();
+
+            avgWf.City = array[0].City;
+            avgWf.Country = array[0].Country;
+            avgWf.FromDate = array[0].Date;
+            avgWf.ToDate = array[array.Length - 1].Date;
+
+            //Calculating average temperature
+            avgWf.AvgTemperatureC = 0;
+            for(int i = 0; i < array.Length; i++)
+            {
+                avgWf.AvgTemperatureC += array[i].TemperatureC;
+            }
+            avgWf.AvgTemperatureC /= array.Length;
+
+            //Calculating most common weather condition
+            var weatherConditionCounter = new Dictionary<string, int>(); 
+            foreach (WeatherForecast wthFc in array)
+            {
+                    if (weatherConditionCounter.ContainsKey(wthFc.Weather)) //If the key, which is wthFc's Weather condition, is already present in the dictionary, we increment
+                    {
+                        weatherConditionCounter[wthFc.Weather]++;
+                    }
+                    else  //Else, we create it and assign 1
+                    {
+                    weatherConditionCounter[wthFc.Weather] = 1;
+                    }
+            }
+            // Using the Aggregate method to find the most frequent weather condition.
+            // The Aggregate method iterates through each key-value pair in the weatherConditionCounter dictionary.
+            // In each iteration, it compares the current pair (x) with the next pair (y).
+            // The lambda expression (x, y) => x.Value > y.Value ? x : y decides which pair to carry forward to the next comparison.
+            // If x's value (the count of occurrences) is greater than y's, x is carried forward; otherwise, y is.
+            // This process repeats until the pair with the highest count is found.
+            // Finally, .Key is used to extract the key (the weather condition string) from that pair.
+            avgWf.AvgWeather = weatherConditionCounter.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+
+            //Give result
+            return avgWf;
+        }
+
+
         /*
          * Takes jsonString as input. Json must be the one from internal WeatherReport (NOT WeatherAPI)
          * Gives back WeatherForecast object.
