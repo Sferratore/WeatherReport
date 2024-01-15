@@ -49,7 +49,7 @@ namespace WeatherReport.Controllers
             }
 
             //Converting Json in Object form and giving it back if operation was successful.
-            return Ok(createWeatherForecastObjectFromJson(jsonString)); 
+            return Ok(createWeatherForecastObjectFromJsonExternal(jsonString)); 
         }
 
 
@@ -81,7 +81,7 @@ namespace WeatherReport.Controllers
                 jsonResponse = await response.Content.ReadAsStringAsync();
 
                 //Creating new WeatherForecast obj based on data
-                weatherForecasts[i] = createWeatherForecastObjectFromJson(jsonResponse);
+                weatherForecasts[i] = createWeatherForecastObjectFromJsonInternal(jsonResponse);
 
             }
 
@@ -96,9 +96,10 @@ namespace WeatherReport.Controllers
         //----------PRIVATE UTILITY METHODS-------------
 
         /*
-         * Takes jsonString as input. Gives back WeatherForecast object.
+         * Takes jsonString as input. Json must be the one from external WeatherAPI (NOT WeatherReport)
+         * Gives back WeatherForecast object.
          */
-        private WeatherForecast createWeatherForecastObjectFromJson(string jsonString)
+        private WeatherForecast createWeatherForecastObjectFromJsonExternal(string jsonString)
         {
             WeatherForecast wf = new WeatherForecast();
 
@@ -118,6 +119,33 @@ namespace WeatherReport.Controllers
 
             return wf;
         }
+
+
+        /*
+         * Takes jsonString as input. Json must be the one from internal WeatherReport (NOT WeatherAPI)
+         * Gives back WeatherForecast object.
+         */
+        private WeatherForecast createWeatherForecastObjectFromJsonInternal(string jsonString)
+        {
+            WeatherForecast wf = new WeatherForecast();
+
+            using (var jsonDoc = JsonDocument.Parse(jsonString))
+            {
+                // Assume the JSON structure is like { "id": 123, "name": "John Doe", ... }
+                JsonElement root = jsonDoc.RootElement;
+
+                // Access specific fields
+                wf.Country = root.GetProperty("country").GetString();
+                wf.City = root.GetProperty("city").GetString();
+                wf.TemperatureC = root.GetProperty("temperatureC").GetDouble();
+                wf.Date = root.GetProperty("date").GetString();
+                wf.Weather = root.GetProperty("weather").GetString();
+
+            }
+
+            return wf;
+        }
+
 
         /*
          * Takes a date in yyyy-mm format and a day as input. Returns yyyy-mm-dd string.
