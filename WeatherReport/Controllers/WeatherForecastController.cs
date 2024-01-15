@@ -92,7 +92,8 @@ namespace WeatherReport.Controllers
 
             }
 
-            return Ok(weatherForecasts.Length);
+            //Creating and returning results
+            return Ok(createAvgWeather(weatherForecasts));
 
 
         }
@@ -165,7 +166,7 @@ namespace WeatherReport.Controllers
             // If x's value (the count of occurrences) is greater than y's, x is carried forward; otherwise, y is.
             // This process repeats until the pair with the highest count is found.
             // Finally, .Key is used to extract the key (the weather condition string) from that pair.
-            avgWf.AvgWeather = weatherConditionCounter.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+            avgWf.AvgCondition = weatherConditionCounter.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
 
             //Give result
             return avgWf;

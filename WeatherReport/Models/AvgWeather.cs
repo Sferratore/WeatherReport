@@ -12,6 +12,6 @@
 
         public double AvgTemperatureF => 32 + (int)(AvgTemperatureC / 0.5556);
 
-        public string AvgWeather { get; set; }
+        public string AvgCondition { get; set; }
     }
 }
