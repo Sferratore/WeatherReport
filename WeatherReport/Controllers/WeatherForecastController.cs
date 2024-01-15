@@ -107,7 +107,7 @@ namespace WeatherReport.Controllers
 
             string apiUrl;
             string jsonResponse;
-            WeatherForecast[] weatherForecasts = new WeatherForecast[12]; //This contains the averages of the months
+            AvgWeather[] avgWeatherForecasts = new AvgWeather[12]; //This contains the averages of the months
 
             for (int i = 0; i < 12; i++)
             {
@@ -124,7 +124,7 @@ namespace WeatherReport.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     //Creating new WeatherForecast obj based on data
-                    weatherForecasts[i] = createWeatherForecastObjectFromJsonInternal(jsonResponse);
+                    avgWeatherForecasts[i] = createAvgWeatherFromJson(jsonResponse);
                 }
                 else
                 {
@@ -133,8 +133,8 @@ namespace WeatherReport.Controllers
 
             }
 
-            //Creating and returning results
-            return Ok(createAvgWeather(weatherForecasts));
+            //Creating average weather of the year from averages for each month and returning results
+            return Ok(createAvgWeather(avgWeatherForecasts));
 
 
         }
